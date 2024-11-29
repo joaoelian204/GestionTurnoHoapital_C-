@@ -1,6 +1,6 @@
-
 #include <iostream>
 #include <string>
+#include <algorithm> // Para usar transform
 using namespace std;
 
 // Clase Paciente
@@ -9,9 +9,9 @@ struct Paciente {
     string nombre;
     string condicion_medica; // leve, grave, crítica
     Paciente* siguiente;
-    Paciente* anterior; // Solo se usará en lista doblemente enlazada
+    Paciente* anterior; // Solo usado en lista doblemente enlazada
 
-    Paciente(int turno, string nom, string cond) 
+    Paciente(int turno, string nom, string cond)
         : numero_turno(turno), nombre(nom), condicion_medica(cond), siguiente(nullptr), anterior(nullptr) {}
 };
 
@@ -25,10 +25,10 @@ public:
 
     void registrarPaciente(int turno, string nombre, string condicion) {
         Paciente* nuevo = new Paciente(turno, nombre, condicion);
-        if (!ultimo) {
+        if (!ultimo) { // Lista vacía
             ultimo = nuevo;
             nuevo->siguiente = nuevo;
-        } else {
+        } else { // Lista no vacía
             nuevo->siguiente = ultimo->siguiente;
             ultimo->siguiente = nuevo;
             ultimo = nuevo;
@@ -36,21 +36,19 @@ public:
         cout << "Paciente " << nombre << " registrado en la lista general." << endl;
     }
 
-    void atenderPaciente() {
+    Paciente* atenderPaciente() {
         if (!ultimo) {
             cout << "No hay pacientes en la fila general." << endl;
-            return;
+            return nullptr;
         }
         Paciente* primero = ultimo->siguiente;
-        cout << "Atendiendo a: " << primero->nombre << endl;
-
         if (primero == ultimo) {
-            delete primero;
-            ultimo = nullptr;
+            ultimo = nullptr; // Solo un paciente
         } else {
             ultimo->siguiente = primero->siguiente;
-            delete primero;
         }
+        cout << "Atendiendo a: " << primero->nombre << endl;
+        return primero;
     }
 
     void mostrarFila() {
@@ -60,10 +58,18 @@ public:
         }
         Paciente* actual = ultimo->siguiente;
         do {
-            cout << "Turno: " << actual->numero_turno << ", Nombre: " << actual->nombre 
-                << ", Condición: " << actual->condicion_medica << endl;
+            cout << "Turno: " << actual->numero_turno << ", Nombre: " << actual->nombre
+                 << ", Condición: " << actual->condicion_medica << endl;
             actual = actual->siguiente;
         } while (actual != ultimo->siguiente);
+    }
+
+    Paciente* moverPaciente() {
+        if (!ultimo) {
+            cout << "No hay pacientes para mover en la fila general." << endl;
+            return nullptr;
+        }
+        return atenderPaciente(); // Remueve y retorna el paciente atendido
     }
 };
 
@@ -77,11 +83,11 @@ public:
 
     void registrarPaciente(int turno, string nombre, string condicion) {
         Paciente* nuevo = new Paciente(turno, nombre, condicion);
-        if (!ultimo) {
+        if (!ultimo) { // Lista vacía
             ultimo = nuevo;
             nuevo->siguiente = nuevo;
             nuevo->anterior = nuevo;
-        } else {
+        } else { // Lista no vacía
             nuevo->siguiente = ultimo->siguiente;
             nuevo->anterior = ultimo;
             ultimo->siguiente->anterior = nuevo;
@@ -97,16 +103,14 @@ public:
             return;
         }
         Paciente* primero = ultimo->siguiente;
-        cout << "Atendiendo a: " << primero->nombre << endl;
-
         if (primero == ultimo) {
-            delete primero;
-            ultimo = nullptr;
+            ultimo = nullptr; // Solo un paciente
         } else {
             ultimo->siguiente = primero->siguiente;
             primero->siguiente->anterior = ultimo;
-            delete primero;
         }
+        cout << "Atendiendo a: " << primero->nombre << endl;
+        delete primero; // Liberar memoria
     }
 
     void mostrarFila() {
@@ -116,14 +120,21 @@ public:
         }
         Paciente* actual = ultimo->siguiente;
         do {
-            cout << "Turno: " << actual->numero_turno << ", Nombre: " << actual->nombre 
-                << ", Condición: " << actual->condicion_medica << endl;
+            cout << "Turno: " << actual->numero_turno << ", Nombre: " << actual->nombre
+                 << ", Condición: " << actual->condicion_medica << endl;
             actual = actual->siguiente;
         } while (actual != ultimo->siguiente);
     }
+
+    void registrarDesdeListaGeneral(Paciente* paciente) {
+        if (paciente) {
+            registrarPaciente(paciente->numero_turno, paciente->nombre, paciente->condicion_medica);
+            delete paciente; // Liberar memoria
+        }
+    }
 };
 
-// Funcionalidad del menú
+// Función del menú interactivo
 void menu() {
     ListaCircularSimple listaGeneral;
     ListaCircularDoble listaPrioritaria;
@@ -142,17 +153,27 @@ void menu() {
         if (opcion == 1) {
             string nombre, condicion;
             cout << "Nombre del paciente: ";
-            cin >> nombre;
+            cin >> ws; // Limpiar espacios iniciales
+            getline(cin, nombre); // Capturar nombres con espacios
             cout << "Condición médica (leve, grave, crítica): ";
-            cin >> condicion;
+            cin >> ws;
+            getline(cin, condicion);
+
+            // Convertir a minúsculas para validación
+            transform(condicion.begin(), condicion.end(), condicion.begin(), ::tolower);
+
             if (condicion == "leve") {
                 listaGeneral.registrarPaciente(turno++, nombre, condicion);
-            } else {
+            } else if (condicion == "grave" || condicion == "crítica") {
                 listaPrioritaria.registrarPaciente(turno++, nombre, condicion);
+            } else {
+                cout << "Condición médica no válida. Intente nuevamente." << endl;
             }
         } else if (opcion == 2) {
-            // Simulación: mover paciente de general a prioritario
-            cout << "Función no implementada completamente en este bloque inicial." << endl;
+            Paciente* pacienteMovido = listaGeneral.moverPaciente();
+            if (pacienteMovido) {
+                listaPrioritaria.registrarDesdeListaGeneral(pacienteMovido);
+            }
         } else if (opcion == 3) {
             int tipo;
             cout << "Atender de: 1) General, 2) Prioritario: ";
