@@ -178,6 +178,7 @@ void menu() {
             if (pacienteMovido) {
                 listaPrioritaria.registrarDesdeListaGeneral(pacienteMovido);
             }
+            system("pause");
         } else if (opcion == 3) {
             int tipo;
             cout << "Atender de: 1) General, 2) Prioritario: ";
@@ -189,6 +190,7 @@ void menu() {
             } else {
                 cout << "Opción no esta disponible." << endl;
             }
+            system("pause");
         } else if (opcion == 4) {
             cout << "\nPacientes en fila general:\n";
             listaGeneral.mostrarFila();
