@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <algorithm> // Para usar transform
+#include <cstdlib>
 using namespace std;
 
 // Clase Paciente
@@ -25,14 +26,16 @@ public:
 
     void registrarPaciente(int turno, string nombre, string condicion) {
         Paciente* nuevo = new Paciente(turno, nombre, condicion);
+
         if (!ultimo) { // Lista vacía
             ultimo = nuevo;
-            nuevo->siguiente = nuevo;
+            nuevo->siguiente = nuevo; // Se apunta a sí mismo, formando la lista circular
         } else { // Lista no vacía
-            nuevo->siguiente = ultimo->siguiente;
-            ultimo->siguiente = nuevo;
-            ultimo = nuevo;
+            nuevo->siguiente = ultimo->siguiente; // Conectar al primer nodo actual
+            ultimo->siguiente = nuevo; // Conectar el último nodo al nuevo nodo
+            ultimo = nuevo; // Actualizar el puntero al último nodo
         }
+
         cout << "Paciente " << nombre << " registrado en la lista general." << endl;
     }
 
@@ -59,7 +62,7 @@ public:
         Paciente* actual = ultimo->siguiente;
         do {
             cout << "Turno: " << actual->numero_turno << ", Nombre: " << actual->nombre
-                 << ", Condición: " << actual->condicion_medica << endl;
+                 << ", Condicion: " << actual->condicion_medica << endl;
             actual = actual->siguiente;
         } while (actual != ultimo->siguiente);
     }
@@ -99,7 +102,7 @@ public:
 
     void atenderPaciente() {
         if (!ultimo) {
-            cout << "No hay pacientes en la fila prioritaria." << endl;
+            cout << "No tenemos pacientes en la fila prioritaria." << endl;
             return;
         }
         Paciente* primero = ultimo->siguiente;
@@ -121,7 +124,7 @@ public:
         Paciente* actual = ultimo->siguiente;
         do {
             cout << "Turno: " << actual->numero_turno << ", Nombre: " << actual->nombre
-                 << ", Condición: " << actual->condicion_medica << endl;
+                 << ", Condicion: " << actual->condicion_medica << endl;
             actual = actual->siguiente;
         } while (actual != ultimo->siguiente);
     }
@@ -134,20 +137,21 @@ public:
     }
 };
 
-// Función del menú interactivo
+// Función del menu interactivo
 void menu() {
     ListaCircularSimple listaGeneral;
     ListaCircularDoble listaPrioritaria;
     int opcion, turno = 1;
 
     do {
-        cout << "\n--- Gestión de Turnos ---\n";
+        system("cls");
+        cout << "\n--- Gestion de Turnos ---\n";
         cout << "1. Registrar paciente\n";
         cout << "2. Mover paciente a lista prioritaria\n";
         cout << "3. Atender paciente\n";
         cout << "4. Mostrar filas\n";
         cout << "5. Salir\n";
-        cout << "Seleccione una opción: ";
+        cout << "Seleccione una opcion: ";
         cin >> opcion;
 
         if (opcion == 1) {
@@ -155,7 +159,7 @@ void menu() {
             cout << "Nombre del paciente: ";
             cin >> ws; // Limpiar espacios iniciales
             getline(cin, nombre); // Capturar nombres con espacios
-            cout << "Condición médica (leve, grave, crítica): ";
+            cout << "Condicion medica (leve, grave, critica): ";
             cin >> ws;
             getline(cin, condicion);
 
@@ -164,10 +168,10 @@ void menu() {
 
             if (condicion == "leve") {
                 listaGeneral.registrarPaciente(turno++, nombre, condicion);
-            } else if (condicion == "grave" || condicion == "crítica") {
+            } else if (condicion == "grave" || condicion == "critica") {
                 listaPrioritaria.registrarPaciente(turno++, nombre, condicion);
             } else {
-                cout << "Condición médica no válida. Intente nuevamente." << endl;
+                cout << "Condicion no ha sido detectada xd. Try again." << endl;
             }
         } else if (opcion == 2) {
             Paciente* pacienteMovido = listaGeneral.moverPaciente();
@@ -183,19 +187,22 @@ void menu() {
             } else if (tipo == 2) {
                 listaPrioritaria.atenderPaciente();
             } else {
-                cout << "Opción inválida." << endl;
+                cout << "Opción no esta disponible." << endl;
             }
         } else if (opcion == 4) {
             cout << "\nPacientes en fila general:\n";
             listaGeneral.mostrarFila();
             cout << "\nPacientes en fila prioritaria:\n";
             listaPrioritaria.mostrarFila();
+            system("pause");
         } else if (opcion != 5) {
-            cout << "Opción inválida, intente de nuevo." << endl;
+            cout << "Opción invalida, intente de nuevo." << endl;
         }
+        
     } while (opcion != 5);
 
     cout << "Gracias por usar el sistema." << endl;
+
 }
 
 int main() {
